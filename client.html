@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=utf-8/>
+    <title>Cliente Notebook</title>
+    
+    <script type="text/javascript">
+      var socket = null;
+
+      function bootstrap() {
+
+        // inicializa o websocket 
+        //Tirar o localhost e colocar IP do server quando for rodar em maquinas diferentes
+        socket = new WebSocket('ws://localhost:8082');
+        socket.binaryType = 'arraybuffer';
+        socket.onopen = function() {
+          send();
+        }
+      };
+
+      //envia a imagem do canvas como arquivo binário para o server
+      function send() {
+        var c = document.getElementById('mycanvas');
+        var ctx = c.getContext('2d');
+        ctx.globalalpha = 0.3;
+        for(var i=0; i<1000; i++) {
+            ctx.beginPath();
+            var r = Math.floor(Math.random() * 256);
+            var g = Math.floor(Math.random() * 256);
+            var b = Math.floor(Math.random() * 256);
+            ctx.strokeStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+            ctx.moveTo(Math.random()*200, Math.random()*200);
+            ctx.lineTo(Math.random()*200, Math.random()*200);
+            ctx.stroke();
+        }
+
+        // Envia a imagem como binary data
+        var data = ctx.getImageData(0, 0, 1280, 720).data;
+        var byteArray = new Uint8Array(data);
+        socket.send(byteArray.buffer);
+
+        // deixa a função em loop
+        setTimeout(send, 50);
+      } 
+    </script>
+  </head>
+  <body onload="bootstrap()">
+    <div>
+      Input<br>
+      <canvas id="mycanvas" width="200" height="200"></canvas>
+    </div>
+
+  </body>
+</html>
