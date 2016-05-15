@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset=utf-8/>
+	<title>Cliente RaspBerry Pi</title>
+	<style>
+      body{margin: 0px; padding: 0px; background-color: black;}
+		p{position: absolute; color: red; z-index: 999; left: 50%; top: 50%; margin-top: -9px; margin-left:-4px;}
+    </style>
+
+	<script type="text/javascript">
+
+		  // inicializa o websocket. 
+		  //Tirar o localhost e colocar IP do server quando for rodar em maquinas diferentes
+		  var ws = new WebSocket("ws://localhost:8082");	  
+		  ws.binaryType = 'arraybuffer';
+
+          //Quando abre a página gera o canvas c e chama a função send 
+		  window.onload=function() {
+		    var c = document.getElementById("picture");
+		    var ctx = c.getContext("2d");
+
+		    ws.onopen = function() {
+			    send();
+			  }
+		  }
+
+		  //envia mensagens para o server para ele retornar com a imagem
+		  //***verificar depois se o tamanho da mensagem do send gera delay
+		  function send() {
+			  ws.send('{ "type":"text"}' ); 
+			  setTimeout(send, 50);
+		  };
+
+		  //ao receber um arquivo binario do servidor ele desenha no canvas
+		  ws.onmessage=function(event) {		  				  		 
+				  var c = resultCanvas = document.getElementById('picture');
+				  var ctx = c.getContext('2d');
+				  var imageData = ctx.createImageData(1280, 720);
+				  var pixels = imageData.data;
+
+				  var buffer = new Uint8Array(event.data);
+				  for (var i=0; i < pixels.length; i++) {
+				    pixels[i] = buffer[i];
+				  }
+				  ctx.putImageData(imageData, 0, 0);
+
+		  };
+				
+	</script>
+
+</head>
+<body>
+		<div>
+		<canvas id="picture"  width="1280" height="720"></canvas>
+		</div>
+		
+	<p>+</p>
+</body>
+</html>
